@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use Test::Deep;
 use Data::Dumper;
-use Clone qw(clone);
+use Clone::Fast qw(clone);
 use Readonly;
 $Data::Dumper::Sortkeys = 1;
 

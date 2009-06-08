@@ -2,7 +2,7 @@ package RushHour;
 
 use strict;
 use warnings;
-use Clone qw(clone);
+use Clone::Fast qw(clone);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 
