@@ -8,14 +8,14 @@ $Data::Dumper::Sortkeys = 1;
 
 sub new {
     my $class = shift;
-    my ($board_x, $board_y, $initial_state) = @_;
+    my ($board_x, $board_y, $pieces) = @_;
     
     my $self = {
         debug => 0,
         board_x => $board_x,
         board_y => $board_y,
         seen => {},
-        initial_state => $initial_state,
+        initial_state => { pieces => $pieces },
     };
     bless $self, $class;
 }
@@ -83,16 +83,12 @@ sub new_state {
         }
     }
     
-    my $new_state = clone $old_state;
-    delete $new_state->{matrix};
-    delete $new_state->{ss};
-    delete $new_state->{previous};
-    delete $new_state->{count};
-    delete $new_state->{move};
+    my $new_state = { pieces => clone $old_state->{pieces} };
     
-    $new_state->{$piece}{position} = $position;
+    $new_state->{pieces}{$piece}{position} = $position;
     
-    my $move = "$piece from $old_state->{$piece}{position} to $position";
+    my $move = "$piece from $old_state->{pieces}{$piece}{position} to $position";
+    $old_state->{count} ||= 0;
     $new_state->{count} = $old_state->{count} + 1;
     $new_state->{previous} = [@{$old_state->{previous} || []}, $move];
     
@@ -106,7 +102,7 @@ sub new_state {
     $self->mark_as_seen($new_state);
     
     # Check for winning state
-    if (my $position = $new_state->{'red car'}{position}) {
+    if (my $position = $new_state->{pieces}{'red car'}{position}) {
         my $matrix = $self->get_matrix($new_state);
         my ( $x, $y ) = split /,/, $position;
         my $clear_path = 1;
@@ -178,12 +174,12 @@ sub get_state_string {
         return $state->{ss};
     }
     
-    my @positions = map { $_ . "_" . $state->{$_}{position} } 
-                    grep { $_ ne 'matrix' && $_ ne 'ss' && $_ ne 'previous' && $_ ne 'count' && $_ ne 'move' } keys %$state;
-#    while ( my ( $piece, $spec ) = each(%$state) ) {
-#        next if $piece eq 'matrix' || $piece eq 'ss' || $piece eq 'previous'  || $piece eq 'count' || $piece eq 'move' ;
-#        push @positions, $piece . "_" . $spec->{position};
-#    }
+    my @positions;
+    while (my ($piece, $spec) = each %{$state->{pieces}} ) {
+        push @positions, $piece . "_" . $spec->{position};
+    }
+#    my @positions = map { $_ . "_" . $state->{pieces}{$_}{position} } keys %{$state->{pieces}};
+
     $state->{count} ||= 0;
     my $ss = join ' ', sort @positions;
     $state->{ss} = $ss;
@@ -205,11 +201,10 @@ sub get_new_states {
 #    $self->debug("Getting new states for: $ss");
     
     my @new_states;
-    my $xxx = clone $state;
-    while ( my ( $piece, $spec ) = each(%$xxx) ) {
-        next if $piece eq 'matrix' || $piece eq 'ss' || $piece eq 'previous' || $piece eq 'count'  || $piece eq 'move';
-        
-#        $self->debug("Examining $piece");
+
+    # Not sure why i need to clone the variable here..
+    my %pieces = %{$state->{pieces}};
+    while ( my ( $piece, $spec ) = each(%pieces) ) {
         
         my ( $position, $orientation, $type ) = @{$spec}{ 'position', 'orientation', 'type' };
         my ( $x, $y ) = split /,/, $position;
@@ -271,7 +266,7 @@ sub get_matrix {
         return $state->{matrix};
     }
     my $matrix;
-    while ( my ( $piece, $spec ) = each(%$state) ) {
+    while ( my ( $piece, $spec ) = each(%{$state->{pieces}}) ) {
         next if $piece eq 'matrix' || $piece eq 'ss' || $piece eq 'previous' || $piece eq 'count'  || $piece eq 'move';
         my ( $position, $orientation, $type ) = @{$spec}{ 'position', 'orientation', 'type' };
         my ( $x, $y ) = split /,/, $position;

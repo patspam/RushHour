@@ -1,17 +1,9 @@
 use strict;
 use warnings;
-use Test::More;
-use Test::Deep;
-use Data::Dumper;
-use Clone qw(clone);
-use Readonly;
-$Data::Dumper::Sortkeys = 1;
 
-plan tests => 1;
+use RushHour;
 
-use_ok('RushHour');
-
-my $state = {
+my $pieces = {
     'yellow truck' => {
         position    => '0,0',
         orientation => 'v',
@@ -81,7 +73,6 @@ my $state = {
     
 };
 
-my $rh = RushHour->new(6,6,$state);
+my $rh = RushHour->new(6,6,$pieces);
 $rh->{debug} = 0;
-#$rh->test;
 $rh->solve;

@@ -1,15 +1,7 @@
 use strict;
 use warnings;
-use Test::More;
-use Test::Deep;
-use Data::Dumper;
-use Clone qw(clone);
-use Readonly;
-$Data::Dumper::Sortkeys = 1;
 
-plan tests => 1;
-
-use_ok('RushHour');
+use RushHour;
 
 my $state = {
     'light green car' => {
@@ -57,5 +49,4 @@ my $state = {
 
 my $rh = RushHour->new(6,6,$state);
 $rh->{debug} = 0;
-#$rh->test;
 $rh->solve;

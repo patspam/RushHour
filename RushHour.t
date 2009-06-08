@@ -11,9 +11,9 @@ plan tests => 10;
 
 use_ok('RushHour');
 
-my $debug = 1;
+my $debug = 0;
 
-my $state = {
+my $pieces = {
     'light green car' => {
         position    => '0,0',
         orientation => 'h',
@@ -57,12 +57,13 @@ my $state = {
     },
 };
 
-my $rh = RushHour->new( 6, 6, $state );
+my $rh = RushHour->new( 6, 6, $pieces );
 $rh->{debug} = $debug;
 isa_ok( $rh, 'RushHour' );
 
+my $state = { pieces => $pieces };
 is( $rh->get_state_string($state),
-    '[0] blue car_4,4 blue truck_3,1 green truck_2,5 light green car_0,0 purple truck_0,1 red car_1,2 yellow car_0,4 yellow truck_5,0',
+    'blue car_4,4 blue truck_3,1 green truck_2,5 light green car_0,0 purple truck_0,1 red car_1,2 yellow car_0,4 yellow truck_5,0',
     'get_state_string'
 );
 ok( !$rh->seen($state), 'Not seen yet' );
@@ -103,7 +104,7 @@ delete $state->{count};
 delete $state->{previous};
 
 my $new_state = clone $state;
-$new_state->{'green truck'}{position} = "1,5";
+$new_state->{pieces}{'green truck'}{position} = "1,5";
 
 $rh = RushHour->new( 6, 6, $state );
 cmp_deeply( $rh->new_state( $state, 'green truck', "1,5" ), superhashof($new_state), 'new_state' );
