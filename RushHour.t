@@ -33,7 +33,6 @@ my $pieces = {
         position    => '1,2',
         orientation => 'h',
         type        => 'car',
-        goal        => 1,
     },
     'blue truck' => {
         position    => '3,1',
@@ -149,7 +148,6 @@ is( scalar @states, 10, '10 new states' );
                 position    => '0,2',
                 orientation => 'h',
                 type        => 'car',
-                goal        => 1,
             },
         }
     );
@@ -169,10 +167,28 @@ is( scalar @states, 10, '10 new states' );
                 position    => '0,2',
                 orientation => 'h',
                 type        => 'car',
-                goal        => 1,
             },
         }
     );
     $r->{debug} = $debug;
+    $r->solve;
+}
+
+{
+    my $r = RushHour->new(
+        6, 6,
+        {   'brown car' => {
+                position    => '0,5',
+                orientation => 'h',
+                type        => 'car',
+            },
+            'yellow truck' => {
+                position    => '0,0',
+                orientation => 'v',
+                type        => 'truck',
+            },
+        }
+    );
+    $r->{debug} = 1;
     $r->solve;
 }

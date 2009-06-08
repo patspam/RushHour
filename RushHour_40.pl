@@ -46,7 +46,7 @@ my $pieces = {
         type        => 'car',
     },
     'brown car' => {
-        position    => '5,0',
+        position    => '0,5',
         orientation => 'h',
         type        => 'car',
     },
@@ -75,4 +75,5 @@ my $pieces = {
 
 my $rh = RushHour->new(6,6,$pieces);
 $rh->{debug} = 0;
+$rh->{solution_length} = 55;
 $rh->solve;

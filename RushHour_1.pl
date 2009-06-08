@@ -23,7 +23,6 @@ my $state = {
         position    => '1,2',
         orientation => 'h',
         type        => 'car',
-        goal        => 1,
     },
     'blue truck' => {
         position    => '3,1',

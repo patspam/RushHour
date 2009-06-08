@@ -37,6 +37,9 @@ sub solve {
     
     $self->debug("Attempting to solve..");
     my $initial_state = $self->{initial_state};
+    if (!$initial_state->{pieces}{'red car'}) {
+        die "Error, you need a red car";
+    }
 #    $self->debug("Starting with initial state: " . Dumper($initial_state));
 
     my @states = ( $initial_state );
@@ -157,7 +160,7 @@ sub mark_as_seen {
     my $self = shift;
     my $state = shift;
     my $ss = $self->get_state_string($state);
-    $self->debug("Marking as seen: $ss ($state->{count})");
+#    $self->debug("Marking as seen: $ss ($state->{count})");
     $self->{seen}{$ss} = $state->{count};
 }
 
@@ -174,11 +177,7 @@ sub get_state_string {
         return $state->{ss};
     }
     
-    my @positions;
-    while (my ($piece, $spec) = each %{$state->{pieces}} ) {
-        push @positions, $piece . "_" . $spec->{position};
-    }
-#    my @positions = map { $_ . "_" . $state->{pieces}{$_}{position} } keys %{$state->{pieces}};
+    my @positions = map { $_ . "_" . $state->{pieces}{$_}{position} } keys %{$state->{pieces}};
 
     $state->{count} ||= 0;
     my $ss = join ' ', sort @positions;
@@ -223,10 +222,14 @@ sub get_new_states {
                 }
                 push @new_states, $self->new_state($state, $piece, $new_position);
             }
+            PIECE:
             for my $new_x (reverse(0 .. $x - 1)) {
                 my $new_position = "$new_x,$y";
-                if (my $hit = $matrix->{ $new_position }) {
-                    last if $hit ne $piece;
+                for my $delta ( 0 .. $length - 1) {
+                    if (my $hit = $matrix->{ ( $new_x + $delta ) . "," . $y }) {
+                        next PIECE if $hit ne $piece && $new_x >= $x;
+                        last PIECE if $hit ne $piece && $new_x < $x;
+                    }
                 }
                 push @new_states, $self->new_state($state, $piece, $new_position);
             }
@@ -242,10 +245,17 @@ sub get_new_states {
                 }
                 push @new_states, $self->new_state($state, $piece, $new_position);
             }
+            PIECE:
             for my $new_y (reverse(0 .. $y - 1)) {
                 my $new_position = "$x,$new_y";
                 if (my $hit = $matrix->{ $new_position }) {
                     last if $hit ne $piece;
+                }
+                for my $delta ( 0 .. $length - 1) {
+                    if (my $hit = $matrix->{ $x . "," . ( $new_y + $delta )}) {
+                        next PIECE if $hit ne $piece && $new_y >= $y;
+                        last PIECE if $hit ne $piece && $new_y < $y;
+                    }
                 }
                 push @new_states, $self->new_state($state, $piece, $new_position);
             }
@@ -267,8 +277,10 @@ sub get_matrix {
     }
     my $matrix;
     while ( my ( $piece, $spec ) = each(%{$state->{pieces}}) ) {
-        next if $piece eq 'matrix' || $piece eq 'ss' || $piece eq 'previous' || $piece eq 'count'  || $piece eq 'move';
         my ( $position, $orientation, $type ) = @{$spec}{ 'position', 'orientation', 'type' };
+        if (!$position) {
+            $self->debug(Dumper($piece, $spec));
+        }
         my ( $x, $y ) = split /,/, $position;
         $matrix->{$position} = $piece;
 
